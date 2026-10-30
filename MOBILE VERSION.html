@@ -1,0 +1,175 @@
+가상 테스트를 통해 확인한 모바일 환경의 주요 불편 사항을 다음과 같이 최적화했습니다.
+
+* **조이스틱 조작감 개선:** 모바일 환경에서 엄지손가락이 화면을 가리거나 조작 범위를 벗어나는 문제를 막기 위해 조이스틱 최대 이동 반경(maxR)을 40px에서 60px로 확대하고, 터치 인식 영역을 넓혔습니다.
+* **성능(프레임) 최적화:** 벽이 부서지거나 충돌할 때 생성되는 파편(Debris) 파티클 개수를 46개에서 20개로 줄여 저사양 스마트폰에서의 프레임 드랍과 발열을 방지했습니다.
+* **UI 레이아웃 조정:** 화면이 좁은 기기에서 점수와 텍스트가 겹치지 않도록 반응형 CSS(미디어 쿼리) 폰트 크기를 미세 조정했습니다.
+
+최적화가 적용된 최종 코드를 GitHub를 통해 모바일 웹 게임으로 배포하는 방법은 다음과 같습니다.
+
+1. **저장소 생성:** GitHub에 로그인한 후 우측 상단의 `+` 버튼을 눌러 **New repository**를 클릭합니다. 저장소 이름(예: `sky-roadster-mobile`)을 입력하고 **Create repository**를 누릅니다.
+2. **HTML 파일 생성:** 저장소가 만들어지면 **Add file** > **Create new file**을 클릭합니다.
+3. **코드 붙여넣기:** 파일 이름을 반드시 `index.html`로 입력한 뒤, 아래의 최적화된 전체 코드를 복사하여 빈 공간에 붙여넣습니다.
+4. **저장(커밋):** 화면 우측 상단(또는 하단)의 녹색 **Commit changes** 버튼을 눌러 파일을 저장합니다.
+5. **GitHub Pages 활성화:** 저장소 상단의 **Settings** 탭으로 이동한 뒤, 왼쪽 사이드바에서 **Pages** 메뉴를 클릭합니다.
+6. **브랜치 설정:** 'Build and deployment' 섹션의 Branch 항목을 `None`에서 `main`으로 변경하고 **Save**를 누릅니다.
+7. **접속 및 시연:** 1~2분 정도 기다린 후 새로고침하면 상단에 완성된 웹사이트 주소(`https://[본인아이디].github.io/[저장소이름]/`)가 나타납니다. 모바일 기기에서 해당 주소로 접속해 시연합니다.
+
+아래는 `index.html`에 붙여넣을 최적화된 최종 코드입니다.
+
+```html
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>SKY ROADSTER</title>
+<style>
+:root {
+  --bg: #0a1426; --panel: rgba(10,17,29,.85); --line: rgba(143,196,255,.25); 
+  --cyan: #61f4ff; --pink: #ff658d; --green: #69ffc6; --text: #edf6ff; --muted: #9fb2c8;
+  --accent: var(--cyan);
+  --ov-bg: rgba(2,5,12,.7);
+  --m-bg: linear-gradient(145deg,#111e31,#060c17);
+  --m-bd: rgba(129,198,255,.33);
+  --btn-bd: rgba(144,190,255,.25);
+  --txt-sub: #b8cce2;
+}
+body.hard-mode {
+  --bg: #1a050a; --panel: rgba(17,10,12,.85); --line: rgba(255,101,141,.25);
+  --accent: var(--pink);
+  --ov-bg: rgba(12,2,5,.7);
+  --m-bg: linear-gradient(145deg,#31111a,#17060a);
+  --m-bd: rgba(255,129,165,.33);
+  --btn-bd: rgba(255,144,175,.25);
+  --txt-sub: #e2b8c5;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:system-ui,sans-serif; touch-action:none;}
+#game{position:fixed;inset:0;touch-action:none;user-select:none;}
+canvas{display:block}
+#joy-base { position:fixed; width:120px; height:120px; border-radius:50%; background:rgba(255,255,255,0.1); border:2px solid rgba(255,255,255,0.3); z-index:5; pointer-events:none; transform:translate(-50%,-50%); }
+#joy-knob { position:absolute; top:50%; left:50%; width:50px; height:50px; border-radius:50%; background:rgba(255,255,255,0.8); box-shadow:0 0 12px rgba(255,255,255,0.5); transform:translate(-50%,-50%); }
+#hud{position:fixed;z-index:3;top:0;left:0;right:0;padding:max(10px,env(safe-area-inset-top)) 10px 0;display:flex;gap:6px;justify-content:space-between;pointer-events:none}
+.p{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:7px 10px;backdrop-filter:blur(8px);}
+.l{font-size:9px;letter-spacing:.1em;color:var(--muted);font-weight:800}.v{font-size:16px;font-weight:900;}
+#help{position:fixed;z-index:3;bottom:max(12px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);font-size:11px;color:var(--txt-sub);background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:7px 12px;white-space:nowrap;pointer-events:none;}
+.ov{position:fixed;z-index:10;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;background:var(--ov-bg);backdrop-filter:blur(8px);}.hidden{display:none!important}
+.m{width:min(500px,100%);max-height:100%;overflow:auto;border-radius:16px;padding:20px;background:var(--m-bg);border:1px solid var(--m-bd);}
+.tag{font-size:10px;color:var(--accent);font-weight:900}.m h2{font-size:24px;margin:8px 0;}.m p{font-size:13px;line-height:1.6;color:var(--txt-sub);margin:0 0 12px}
+#qt{font-size:17px;line-height:1.5;font-weight:800;white-space:pre-line;margin:8px 0}#qh{font-size:11px;color:var(--txt-sub);margin-bottom:12px}
+#tb-wrap{width:100%;height:4px;background:rgba(0,0,0,.3);border-radius:2px;margin-bottom:12px;overflow:hidden}
+#t-bar{width:100%;height:100%;background:var(--accent);transition:width .1s linear}
+#ans{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.a{padding:12px;background:rgba(255,255,255,.05);color:#fff;border:1px solid var(--btn-bd);border-radius:10px;font:700 14px inherit;cursor:pointer;}
+.a.ok{border-color:var(--green);background:rgba(68,255,186,.15)}.a.no{border-color:var(--pink);background:rgba(255,101,141,.15)}
+#fb{display:none;margin-top:12px;padding:10px;border-radius:10px;background:rgba(255,255,255,.05);font-size:12px;color:var(--txt-sub)}#fb.on{display:block}#fb strong{display:block;font-size:14px;color:#fff;margin-bottom:4px}
+.go{width:100%;border:0;border-radius:10px;padding:14px;color:#1e030a;font:900 15px inherit;cursor:pointer;margin-top:8px;}
+.go.easy{background:linear-gradient(100deg,#44ffba,#00d0ff)}.go.hard{background:linear-gradient(100deg,#ff4c79,#ff52dc)}
+@media(max-width:400px){#ans{grid-template-columns:1fr}.v{font-size:14px}#help{font-size:10px}}
+</style></head><body>
+<div id="game"></div>
+<div id="joy-base" class="hidden"><div id="joy-knob"></div></div>
+<div id="hud"><div class="p"><div class="l">SHIELD</div><div class="v" id="hs"></div></div><div class="p"><div class="l">SCORE</div><div class="v" id="hw">0 / 0</div></div><div class="p" style="text-align:right"><div class="l">BEST <span id="hb">0</span>m</div><div class="v" id="hd" style="color:var(--accent)">0m</div></div></div>
+<div id="help">화면을 터치해 드래그하세요!</div>
+<div id="start" class="ov"><div class="m"><div class="tag">SKY ROADSTER</div><h2>수학 벽 돌파</h2><p>구멍을 통과하거나 제한 시간 내에 문제를 풀어 붉은 벽을 부수세요.</p>
+  <button class="go easy" id="btn-easy">EASY (기본 모드) →</button>
+  <button class="go hard" id="btn-hard">HARD (레이저 모드) →</button>
+</div></div>
+<div id="qm" class="ov hidden"><div class="m"><div class="tag" id="qtag"></div><div id="qt"></div><div id="qh"></div>
+<div id="tb-wrap"><div id="t-bar"></div></div>
+<div id="ans"></div><div id="fb"><strong id="fbt"></strong><span id="fbn"></span></div><button class="go easy hidden" id="nx"></button></div></div>
+<div id="over" class="ov hidden"><div class="m"><div class="tag">GAME OVER</div><h2>파괴되었습니다</h2><p id="res"></p><button class="go easy" id="rb">다시 도전 →</button></div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
+const R=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const sh=a=>{for(let i=a.length-1;i>0;i--){const j=R(0,i);[a[i],a[j]]=[a[j],a[i]]}return a};
+const fmt=v=>String(Math.round(v*100)/100);
+function gMed(){const a=Array.from({length:5},()=>R(5,30)),ans=[...a].sort((x,y)=>x-y)[2];return {t:'중앙값',q:`가운데 수는?\n${a.join(', ')}`,h:'정렬 후 중앙값',ans,d:[ans+1,ans-1,ans+2,ans-2],n:`중앙값 ${ans}`}}
+function gEqu(){const a=R(2,5),x=R(2,9),b=R(1,10),c=a*x+b;return {t:'방정식',q:`${a}x + ${b} = ${c}`,h:'x의 값은?',ans:x,d:[x+1,x-1,x+2,x-2],n:`x = ${x}`}}
+const G=[gMed,gEqu];let lastG=-1;
+function genQ(){let q,g;do{g=R(0,1)}while(g===lastG);lastG=g;q=G[g]();const A=fmt(q.ans),S=new Set([A]);for(const v of sh([...q.d])){if(S.size>=4)break;S.add(fmt(v))}q.opts=sh([...S]);q.A=A;return q}
+
+const scene=new THREE.Scene(), cam=new THREE.PerspectiveCamera(65,1,.1,400), ren=new THREE.WebGLRenderer({antialias:true});
+ren.setPixelRatio(Math.min(devicePixelRatio,2));$('game').appendChild(ren.domElement);
+function rs(){ren.setSize(innerWidth,innerHeight);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix()}addEventListener('resize',rs);rs();
+const hemiLight=new THREE.HemisphereLight(0xbfe4ff,0x203050,1.2);scene.add(hemiLight);
+const car=new THREE.Group();
+const bodyPaint=new THREE.MeshStandardMaterial({color:0xc8d6e1,metalness:.8}), tireMat=new THREE.MeshStandardMaterial({color:0x07090d});
+const cBody=new THREE.Mesh(new THREE.BoxGeometry(2,.5,3.5),bodyPaint);cBody.position.y=.5;car.add(cBody);
+scene.add(car);car.scale.setScalar(.8);car.rotation.y=Math.PI;
+
+const W=16,H=12, wallMat=new THREE.MeshStandardMaterial({roughness:.5}), solidMat=new THREE.MeshStandardMaterial({roughness:.4});
+const walls=[],deb=[];let wi=0;
+let grid;
+function setTheme(mode) {
+  if(grid)scene.remove(grid);
+  if(mode==='hard'){
+    document.body.classList.add('hard-mode'); scene.background=new THREE.Color(0x1a050a);
+    solidMat.color.setHex(0x7a1030); solidMat.emissive.setHex(0xff2a5a);
+    grid=new THREE.GridHelper(400,40,0xff2a6f,0x5c1633); $('nx').className='go hard hidden'; $('rb').className='go hard';
+  } else {
+    document.body.classList.remove('hard-mode'); scene.background=new THREE.Color(0x0a1426);
+    solidMat.color.setHex(0x7a1030); solidMat.emissive.setHex(0xff2a5a);
+    grid=new THREE.GridHelper(400,40,0x2a6fff,0x16335c); $('nx').className='go easy hidden'; $('rb').className='go easy';
+  }
+  scene.add(grid);
+}
+setTheme('easy');
+
+function box(g,x0,x1,y0,y1,mat){if(x1-x0<.01||y1-y0<.01)return;const m=new THREE.Mesh(new THREE.BoxGeometry(x1-x0,y1-y0,1),mat);m.position.set((x0+x1)/2,(y0+y1)/2,0);g.add(m)}
+function spawnWall(){const solid=++wi%3===0,g=new THREE.Group(),w={g,solid,done:false};
+  if(solid)box(g,-W/2,W/2,0,H,solidMat);else{const cx=(Math.random()*2-1)*4,cy=3+Math.random()*5,hw=2.5,hh=2;w.cx=cx;w.cy=cy;w.hw=hw;w.hh=hh;
+    box(g,-W/2,cx-hw,0,H,wallMat);box(g,cx+hw,W/2,0,H,wallMat);box(g,cx-hw,cx+hw,0,cy-hh,wallMat);box(g,cx-hw,cx+hw,cy+hh,H,wallMat)}
+  g.position.z=-180;scene.add(g);walls.push(w);}
+
+function explode(w){
+  scene.remove(w.g);const c=w.solid?0xff2a5a:0x4d8dff;
+  for(let i=0;i<20;i++){const m=new THREE.Mesh(new THREE.BoxGeometry(1,1,1),new THREE.MeshBasicMaterial({color:c}));
+  m.position.set((Math.random()-.5)*W,Math.random()*H,w.g.position.z);deb.push({m,v:new THREE.Vector3((Math.random()-.5)*10,Math.random()*10,Math.random()*10),l:1});scene.add(m)}
+}
+
+let gameMode='easy', best=0, state='start',x=0,y=5,vx=0,vy=0,speed=25,dist=0,shield=3,passed=0,broken=0,last=0,cur,answered=false,act=null,tLeft=15;
+let qTimer=null;
+function hud(){$('hs').textContent='◆'.repeat(Math.max(0,shield))+'◇'.repeat(3-Math.max(0,shield));$('hw').textContent=passed+' / '+broken;$('hb').textContent=best;}
+function reset(){walls.forEach(w=>scene.remove(w.g));walls.length=0;wi=0;x=0;y=5;vx=vy=0;dist=0;shield=3;passed=broken=0;car.visible=true;hud();spawnWall();state='play'}
+function hurt(){shield--;hud()}
+function crash(){state='crash';car.visible=false;for(let i=0;i<20;i++){const m=new THREE.Mesh(new THREE.BoxGeometry(.5,.5,.5),new THREE.MeshBasicMaterial({color:0xffb04d}));m.position.set(x,y,0);deb.push({m,v:new THREE.Vector3((Math.random()-.5)*16,Math.random()*10,(Math.random()-.5)*16),l:1});scene.add(m)}setTimeout(over,1000)}
+function over(){state='over';const d=Math.floor(dist);try{best=Math.max(best,d)}catch(e){}hud();$('res').textContent=`비행 거리 ${d}m (최고 ${best}m)`;$('qm').classList.add('hidden');$('over').classList.remove('hidden');joyActive=false;$('joy-base').classList.add('hidden');}
+
+function showQ(){cur=genQ();answered=false;tLeft=15;$('qt').textContent=cur.q;$('fb').className='';$('nx').classList.add('hidden');$('ans').innerHTML=cur.opts.map((o,i)=>`<button class="a" data-i="${i}">${o}</button>`).join('');$('t-bar').style.width='100%';$('qm').classList.remove('hidden');joyActive=false;$('joy-base').classList.add('hidden');clearInterval(qTimer);qTimer=setInterval(()=>{if(answered)return;tLeft-=.1;$('t-bar').style.width=(tLeft/15)*100+'%';if(tLeft<=0){clearInterval(qTimer);pick(-1);}},100);}
+function pick(i){if(answered)return;answered=true;clearInterval(qTimer);const ok=i>=0&&cur.opts[i]===cur.A;document.querySelectorAll('.a').forEach((b,j)=>{b.disabled=true;if(cur.opts[j]===cur.A)b.classList.add('ok');else if(j===i)b.classList.add('no');});$('fbt').textContent=ok?'정답!':'오답! 실드 -1';$('fb').className='on';if(!ok)hurt();const n=$('nx');n.classList.remove('hidden');n.textContent=ok?'벽 부수기':shield>0?'새 문제':'결과 보기';n.onclick=()=>{if(ok){$('qm').classList.add('hidden');explode(act);walls.splice(walls.indexOf(act),1);broken++;hud();state='play';}else if(shield>0)showQ();else over();}}
+$('ans').onclick=e=>{const b=e.target.closest('.a');if(b)pick(+b.dataset.i)};
+
+let joyActive=false,jx=0,jy=0,jStartX=0,jStartY=0;
+const jBase=$('joy-base'),jKnob=$('joy-knob');
+$('game').addEventListener('pointerdown',e=>{if(state!=='play')return;joyActive=true;jStartX=e.clientX;jStartY=e.clientY;jBase.style.left=jStartX+'px';jBase.style.top=jStartY+'px';jBase.classList.remove('hidden');jKnob.style.transform=`translate(-50%, -50%)`;jx=jy=0;});
+$('game').addEventListener('pointermove',e=>{if(!joyActive||state!=='play')return;e.preventDefault();let dx=e.clientX-jStartX,dy=e.clientY-jStartY,d=Math.sqrt(dx*dx+dy*dy),maxR=60;if(d>maxR){dx=(dx/d)*maxR;dy=(dy/d)*maxR;}jKnob.style.transform=`translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;jx=dx/maxR;jy=-dy/maxR;});
+const endJoy=()=>{joyActive=false;jx=jy=0;jBase.classList.add('hidden');};
+window.addEventListener('pointerup',endJoy);window.addEventListener('pointercancel',endJoy);
+
+$('btn-easy').onclick=()=>{gameMode='easy';setTheme('easy');$('start').classList.add('hidden');reset();};
+$('btn-hard').onclick=()=>{gameMode='hard';setTheme('hard');$('start').classList.add('hidden');reset();};
+$('rb').onclick=()=>{$('over').classList.add('hidden');$('start').classList.remove('hidden')};
+
+function step(dt){
+  dist+=speed*dt; $('hd').textContent=Math.floor(dist)+'m';
+  const k=Math.min(1,dt*6); vx+=(jx*14-vx)*k; vy+=(jy*11-vy)*k;
+  x=clamp(x+vx*dt,-W/2+1,W/2-1); y=clamp(y+vy*dt,1.3,H-1.3);
+  if(dist%80<speed*dt)spawnWall();
+  for(let i=walls.length-1;i>=0;i--){
+    const w=walls[i]; w.g.position.z+=speed*dt; const z=w.g.position.z;
+    if(w.solid&&!w.done&&z>-15){w.done=true;w.g.position.z=-15;act=w;state='quiz';showQ();return}
+    if(!w.solid&&!w.done&&z>-1.2){w.done=true;if(Math.abs(x-w.cx)>w.hw-.8||Math.abs(y+.4-w.cy)>w.hh-.5){crash();return}else{passed++;hud()}}
+    if(z>12){scene.remove(w.g);walls.splice(i,1)}
+  }
+}
+function loop(t){requestAnimationFrame(loop);const dt=Math.min(.05,(t-last)/1000||0);last=t;
+  if(state==='play')step(dt);
+  for(let i=deb.length-1;i>=0;i--){const d=deb[i];d.l-=dt;d.v.y-=14*dt;d.m.position.addScaledVector(d.v,dt);if(d.l<=0){scene.remove(d.m);deb.splice(i,1)}}
+  if(grid)grid.position.z=-100+(dist%10);
+  car.position.set(x,y,0);car.rotation.set(vy*.03,Math.PI,vx*.035);
+  cam.position.set(x*.6,y+3,10);cam.lookAt(x*.8,y+.5,-14);ren.render(scene,cam)}
+requestAnimationFrame(loop);
+</script></body></html>
+
+```
