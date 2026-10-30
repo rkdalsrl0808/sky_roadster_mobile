@@ -1,22 +1,3 @@
-가상 테스트를 통해 확인한 모바일 환경의 주요 불편 사항을 다음과 같이 최적화했습니다.
-
-* **조이스틱 조작감 개선:** 모바일 환경에서 엄지손가락이 화면을 가리거나 조작 범위를 벗어나는 문제를 막기 위해 조이스틱 최대 이동 반경(maxR)을 40px에서 60px로 확대하고, 터치 인식 영역을 넓혔습니다.
-* **성능(프레임) 최적화:** 벽이 부서지거나 충돌할 때 생성되는 파편(Debris) 파티클 개수를 46개에서 20개로 줄여 저사양 스마트폰에서의 프레임 드랍과 발열을 방지했습니다.
-* **UI 레이아웃 조정:** 화면이 좁은 기기에서 점수와 텍스트가 겹치지 않도록 반응형 CSS(미디어 쿼리) 폰트 크기를 미세 조정했습니다.
-
-최적화가 적용된 최종 코드를 GitHub를 통해 모바일 웹 게임으로 배포하는 방법은 다음과 같습니다.
-
-1. **저장소 생성:** GitHub에 로그인한 후 우측 상단의 `+` 버튼을 눌러 **New repository**를 클릭합니다. 저장소 이름(예: `sky-roadster-mobile`)을 입력하고 **Create repository**를 누릅니다.
-2. **HTML 파일 생성:** 저장소가 만들어지면 **Add file** > **Create new file**을 클릭합니다.
-3. **코드 붙여넣기:** 파일 이름을 반드시 `index.html`로 입력한 뒤, 아래의 최적화된 전체 코드를 복사하여 빈 공간에 붙여넣습니다.
-4. **저장(커밋):** 화면 우측 상단(또는 하단)의 녹색 **Commit changes** 버튼을 눌러 파일을 저장합니다.
-5. **GitHub Pages 활성화:** 저장소 상단의 **Settings** 탭으로 이동한 뒤, 왼쪽 사이드바에서 **Pages** 메뉴를 클릭합니다.
-6. **브랜치 설정:** 'Build and deployment' 섹션의 Branch 항목을 `None`에서 `main`으로 변경하고 **Save**를 누릅니다.
-7. **접속 및 시연:** 1~2분 정도 기다린 후 새로고침하면 상단에 완성된 웹사이트 주소(`https://[본인아이디].github.io/[저장소이름]/`)가 나타납니다. 모바일 기기에서 해당 주소로 접속해 시연합니다.
-
-아래는 `index.html`에 붙여넣을 최적화된 최종 코드입니다.
-
-```html
 <!DOCTYPE html>
 <html lang="ko"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
@@ -171,5 +152,3 @@ function loop(t){requestAnimationFrame(loop);const dt=Math.min(.05,(t-last)/1000
   cam.position.set(x*.6,y+3,10);cam.lookAt(x*.8,y+.5,-14);ren.render(scene,cam)}
 requestAnimationFrame(loop);
 </script></body></html>
-
-```
